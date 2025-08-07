@@ -1,0 +1,131 @@
+/* 화면 고정 */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* 스크롤 방지 */
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 전체 배경 그라데이션 */
+.sky-background {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(-45deg, #87cefa, #f0f8ff, #e0ffff, #b0e0e6);
+  background-size: 400% 400%;
+  animation: skyMove 15s ease infinite;
+  overflow: hidden;
+}
+
+/* 구름 애니메이션 (왼) */
+.cloud-left {
+  position: absolute;
+  bottom: -80px;
+  left: -200px;
+  width: 1000px;
+  opacity: 0;
+  animation: floatLeft 2s ease-out forwards;
+  z-index: 2;
+}
+
+/* 구름 애니메이션 (오) */
+.cloud-right {
+  position: absolute;
+  bottom: -80px;
+  right: -200px;
+  width: 1000px;
+  opacity: 0;
+  animation: floatRight 2s ease-out forwards;
+  animation-delay: 1s;
+  z-index: 1;
+}
+
+/* 구름이 떠오르는 애니메이션 */
+@keyframes floatLeft {
+  0% {
+    transform: translate(-100, 100);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(70px, 30px);
+    opacity: 1;
+  }
+}
+
+@keyframes floatRight {
+  0% {
+    transform: translate(100, 100);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-70px, 100px);
+    opacity: 1;
+  }
+}
+
+/* 배경 흐름 효과 */
+@keyframes skyMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 인트로 컨텐츠 중앙 정렬 */
+.intro-wrapper {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  color: black;
+}
+
+/* 제목 스타일 */
+.intro-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+.intro-highlight {
+  color: skyblue;
+  font-weight: bold;
+}
+
+/* 설명 텍스트 */
+.intro-desc {
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+}
+
+/* 버튼 */
+.intro-button {
+  background-color: skyblue;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  transition: background 0.3s;
+  text-decoration: none;
+}
+
+.intro-button:hover {
+  background-color: #fde047;
+}
