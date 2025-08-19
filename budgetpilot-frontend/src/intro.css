@@ -1,10 +1,11 @@
 /* 화면 고정 */
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden; /* 스크롤 방지 */
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: "Noto Sans KR", sans-serif;
 }
 
 /* 전체 배경 그라데이션 */
@@ -127,5 +128,5 @@ body, html {
 }
 
 .intro-button:hover {
-  background-color: #fde047;
+  background-color: #b5e6ff;
 }
