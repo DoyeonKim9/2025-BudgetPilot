@@ -1,13 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Intro from './components/Intro';
-import TravelInput from './components/TravelInput';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Intro from "./components/Intro";
+import RegionPage from "./pages/RegionPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Intro />} />
-        <Route path="/input" element={<TravelInput />} />
+        <Route path="/question/region" element={<RegionPage />} />
       </Routes>
     </BrowserRouter>
   );
