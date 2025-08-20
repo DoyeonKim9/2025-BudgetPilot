@@ -1,51 +1,48 @@
-#root {
-  max-width: 1280px;
+/* 전체 고정 페이지 프레임 */
+.page-wrapper {
+  position: relative;
+  width: 720px;
+  height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  background-color: white;
+  overflow: hidden;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* 고정된 헤더 */
+.header {
+  position: fixed;
+  top: 0;
+  width: 500px;
+  height: 60px;
+  background-color: white;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid #eee;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* 고정된 푸터 */
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 720px;
+  height: 60px;
+  background-color: white;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid #eee;
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+/* 가운데 콘텐츠만 스크롤 */
+.content {
+  position: absolute;
+  top: 60px; /* header height */
+  bottom: 60px; /* footer height */
   overflow-y: auto;
+  width: 100%;
+  padding: 24px 16px;
+  box-sizing: border-box;
 }

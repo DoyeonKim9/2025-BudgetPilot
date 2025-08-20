@@ -36,7 +36,7 @@ const RegionPage = () => {
   };
 
   return (
-    <div className="region-page">
+    <div className="container">
       {/* Header 고정 */}
       <header className="region-header">
         <button className="back-button" onClick={handleBackClick}>

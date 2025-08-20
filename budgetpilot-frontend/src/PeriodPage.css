@@ -1,5 +1,5 @@
 .container {
-  max-width: 900px; /* 전체 폭 고정 */
+  max-width: 750px; /* 전체 폭 고정 */
   margin: 0 auto; /* 중앙 정렬 */
   height: 100vh; /* 전체 높이 꽉 채우기 */
   display: flex;
@@ -9,7 +9,7 @@
   background-color: white;
 }
 
-.region-header {
+.period-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -25,10 +25,18 @@
   border: none;
   cursor: pointer;
 }
+
 .step-indicator {
+  margin-left: auto;
   font-size: 14px;
-  color: #007bff;
-  font-weight: 600;
+  color: #555;
+}
+
+.period-content {
+  flex: 1;
+  overflow-y: auto; /* 내부 스크롤 허용 */
+  padding: 0 24px;
+  text-align: center;
 }
 
 .title {
@@ -39,52 +47,40 @@
 
 .subtitle {
   font-size: 16px;
-  color: gray;
+  color: #777;
   margin-top: 8px;
   text-align: center;
 }
 
-.region-scroll-container {
-  overflow-y: auto;
-  flex: 1;
-  padding: 0 20px 20px;
-  box-sizing: border-box;
-  background-color: #ffffff;
+.period-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 한 줄에 3개 */
+  gap: 16px;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }
 
-.region-group {
-  margin-bottom: 50px;
-}
-
-.region-title {
-  font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 15px;
-}
-
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.city-button {
-  padding: 12px 60px;
+.period-button {
+  width: 100%; /* 칸 하나를 다 채우도록 */
+  padding: 16px 0;
+  background-color: #f2f2f2;
   border: none;
-  background-color: #f0f0f0;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 17px;
+  border-radius: 16px;
+  font-size: 16px;
   font-weight: bold;
   color: gray;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-align: center;
 }
 
-.city-button.selected {
+.period-button.selected {
   background-color: #55a5fc;
   color: white;
+  font-weight: bold;
 }
 
-.region-footer {
+.period-footer {
   flex: 0 0 auto;
   padding: 16px;
   text-align: center;
