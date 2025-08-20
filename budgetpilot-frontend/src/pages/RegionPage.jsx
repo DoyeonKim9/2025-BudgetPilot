@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../RegionPage.css";
 import { IoArrowBackSharp } from "react-icons/io5";
+import { useQueryNavigator } from "../hook/useQueryNavigator";
 
 const RegionPage = () => {
+  const { goTo } = useQueryNavigator();
   const navigate = useNavigate();
   const [selectedRegion, setSelectedRegion] = useState(null);
 
@@ -23,7 +25,7 @@ const RegionPage = () => {
 
   const handleNextClick = () => {
     if (selectedRegion) {
-      navigate("/question/period", { state: { region: selectedRegion } });
+      goTo("/question/period", { regionIds: selectedRegion });
     } else {
       alert("도시를 선택해주세요!");
     }
