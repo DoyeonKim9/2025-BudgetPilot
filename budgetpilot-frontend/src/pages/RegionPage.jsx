@@ -1,6 +1,7 @@
-// src/pages/RegionPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../RegionPage.css";
+import { IoArrowBackSharp } from "react-icons/io5";
 
 const RegionPage = () => {
   const navigate = useNavigate();
@@ -16,65 +17,62 @@ const RegionPage = () => {
     { category: "기타", items: ["제주도", "울릉도"] },
   ];
 
-  const handleSelect = (region) => {
-    setSelectedRegion(region);
+  const handleCityClick = (city) => {
+    setSelectedRegion(city);
   };
 
-  const handleNext = () => {
+  const handleNextClick = () => {
     if (selectedRegion) {
-      navigate(`/question/period?region=${selectedRegion}`);
+      navigate("/question/period", { state: { region: selectedRegion } });
+    } else {
+      alert("도시를 선택해주세요!");
     }
   };
 
+  const handleBackClick = () => {
+    navigate(-1); // 뒤로 가기
+  };
+
   return (
-    <div className="min-h-screen bg-blue-50 px-6 py-10">
-      <div className="max-w-2xl mx-auto">
-        <h2 className="text-3xl font-extrabold text-center text-blue-700 mb-2">
-          🗺️ 떠나고 싶은 도시는?
-        </h2>
-        <p className="text-center text-gray-600 mb-8">
-          여행하고 싶은 도시 한 곳을 선택해주세요.
-        </p>
+    <div className="region-page">
+      {/* Header 고정 */}
+      <header className="region-header">
+        <button className="back-button" onClick={handleBackClick}>
+          <IoArrowBackSharp size={24} />
+        </button>
+        <span className="step-indicator">1/5</span>
+      </header>
 
-        <div className="space-y-8">
-          {regions.map(({ category, items }) => (
-            <div key={category}>
-              <h4 className="font-semibold text-lg text-gray-700 mb-2">
-                {category}
-              </h4>
-              <div className="flex flex-wrap gap-3">
-                {items.map((region) => (
-                  <button
-                    key={region}
-                    className={`px-4 py-2 rounded-full transition border text-sm shadow-sm 
-                      ${
-                        selectedRegion === region
-                          ? "bg-blue-500 text-white border-blue-500"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-blue-100"
-                      }`}
-                    onClick={() => handleSelect(region)}
-                  >
-                    {region}
-                  </button>
-                ))}
-              </div>
+      {/* 중간 스크롤 영역 */}
+      <div className="region-scroll-container">
+        <h1 className="title">🌏 떠나고 싶은 여행지는?</h1>
+        <p className="subtitle">여행지 1곳을 선택해주세요.</p>
+        {regions.map(({ category, items }) => (
+          <div key={category} className="region-group">
+            <h2 className="region-title">{category}</h2>
+            <div className="button-group">
+              {items.map((city) => (
+                <button
+                  key={city}
+                  className={`city-button ${
+                    selectedRegion === city ? "selected" : ""
+                  }`}
+                  onClick={() => handleCityClick(city)}
+                >
+                  {city}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
 
-        <button
-          className={`mt-12 w-full py-3 rounded-xl font-semibold text-lg transition 
-            ${
-              selectedRegion
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
-          onClick={handleNext}
-          disabled={!selectedRegion}
-        >
+      {/* Footer 고정 */}
+      <footer className="region-footer">
+        <button className="next-button" onClick={handleNextClick}>
           다음
         </button>
-      </div>
+      </footer>
     </div>
   );
 };

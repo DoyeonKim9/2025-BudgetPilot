@@ -1,0 +1,104 @@
+.region-page {
+  max-width: 900px; /* 전체 폭 고정 */
+  margin: 0 auto; /* 중앙 정렬 */
+  height: 100vh; /* 전체 높이 꽉 채우기 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden; /* 내부 스크롤만 허용 */
+  background-color: white;
+}
+
+.region-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+  background-color: white;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.step-indicator {
+  font-size: 14px;
+  color: #007bff;
+  font-weight: 600;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: gray;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.region-scroll-container {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 20px 20px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+}
+
+.region-group {
+  margin-bottom: 50px;
+}
+
+.region-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.city-button {
+  padding: 12px 60px;
+  border: none;
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: bold;
+  color: gray;
+}
+
+.city-button.selected {
+  background-color: #55a5fc;
+  color: white;
+}
+
+.region-footer {
+  flex: 0 0 auto;
+  padding: 16px;
+  text-align: center;
+  background-color: white;
+  border-top: 1px solid #eee;
+}
+
+.next-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+}
