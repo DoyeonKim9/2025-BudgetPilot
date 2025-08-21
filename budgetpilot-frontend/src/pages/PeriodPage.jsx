@@ -26,9 +26,9 @@ const PeriodPage = () => {
   const handleNextClick = () => {
     if (selectedPeriod) {
       // 다음 페이지로 region, period 함께 넘기기
-      navigate("/question/budget", {
+      navigate("/question/who", {
         state: {
-          region,
+          region: region,
           period: selectedPeriod,
         },
       });
@@ -55,12 +55,17 @@ const PeriodPage = () => {
         <h1 className="title">🗓 여행 기간은?</h1>
         <p className="subtitle">원하는 기간을 선택해 주세요.</p>
         <div className="period-grid">
-          <div className="period-button">당일치기</div>
-          <div className="period-button">1박 2일</div>
-          <div className="period-button">2박 3일</div>
-          <div className="period-button">3박 4일</div>
-          <div className="period-button">4박 5일</div>
-          <div className="period-button">5박 6일</div>
+          {periodOptions.map((period) => (
+            <button
+              key={period}
+              className={`period-button ${
+                selectedPeriod === period ? "selected" : ""
+              }`}
+              onClick={() => handlePeriodClick(period)}
+            >
+              {period}
+            </button>
+          ))}
         </div>
       </main>
 
