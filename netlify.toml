@@ -1,7 +1,8 @@
 [build]
+  base = "budgetpilot-frontend" 
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
+  
 
 # SPA 새로고침 404 방지
 [[redirects]]
