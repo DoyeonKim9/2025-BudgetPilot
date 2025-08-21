@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoArrowBackSharp } from "react-icons/io5";
+import { useQueryNavigator } from "../hook/useQueryNavigator";
 import "../WhoPage.css";
 
 const whoOptions = ["혼자", "반려동물", "친구", "연인", "부모님", "기타"];
@@ -8,7 +9,11 @@ const whoOptions = ["혼자", "반려동물", "친구", "연인", "부모님", "
 const WhoPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { region, period } = location.state || {};
+  const { goTo } = useQueryNavigator();
+
+  const searchParams = new URLSearchParams(location.search);
+  const regionIds = searchParams.get("region");
+  const period = searchParams.get("period");
 
   const [selectedWho, setSelectedWho] = useState([]);
 
@@ -24,9 +29,9 @@ const WhoPage = () => {
     if (selectedWho.length > 0) {
       navigate("/question/style", {
         state: {
-          region,
+          region: regionIds,
           period,
-          who: selectedWho, // 배열로 넘김
+          who: selectedWho.join("&"), // 배열로 넘김
         },
       });
     } else {

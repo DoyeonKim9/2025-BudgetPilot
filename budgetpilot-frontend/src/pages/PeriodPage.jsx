@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoArrowBackSharp } from "react-icons/io5";
+import { useQueryNavigator } from "../hook/useQueryNavigator";
 import "../PeriodPage.css"; // 별도 CSS
 
 const periodOptions = [
@@ -15,7 +16,10 @@ const periodOptions = [
 const PeriodPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { region } = location.state || {};
+  const { goTo } = useQueryNavigator();
+
+  const searchParams = new URLSearchParams(location.search);
+  const regionIds = searchParams.get("region");
 
   const [selectedPeriod, setSelectedPeriod] = useState(null);
 
@@ -26,9 +30,9 @@ const PeriodPage = () => {
   const handleNextClick = () => {
     if (selectedPeriod) {
       // 다음 페이지로 region, period 함께 넘기기
-      navigate("/question/who", {
+      goTo("/question/who", {
         state: {
-          region: region,
+          region: regionIds,
           period: selectedPeriod,
         },
       });

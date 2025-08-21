@@ -6,9 +6,11 @@ export const useQueryNavigator = () => {
 
   const goTo = (path, newParams = {}) => {
     const currentSearchParams = new URLSearchParams(location.search);
-    for (const key in newParams) {
-      currentSearchParams.set(key, newParams[key]);
-    }
+
+    Object.entries(newParams).forEach(([key, value]) => {
+      currentSearchParams.set(key, value);
+    });
+
     navigate(`${path}?${currentSearchParams.toString()}`);
   };
 
