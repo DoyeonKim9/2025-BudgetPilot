@@ -16,6 +16,7 @@ const styleOptions = [
 
 const StylePage = () => {
   const navigate = useNavigate();
+  const { goTo } = useQueryNavigator();
   const location = useLocation();
   const { region, period, who } = location.state || {};
 
