@@ -4,6 +4,7 @@ import Layout from "./components/Layout";
 import RegionPage from "./pages/RegionPage";
 import PeriodPage from "./pages/PeriodPage";
 import WhoPage from "./pages/WhoPage";
+import StylePage from "./pages/StylePage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/question/region" element={<RegionPage />} />
           <Route path="/question/period" element={<PeriodPage />} />
           <Route path="/question/who" element={<WhoPage />} />
+          <Route path="/question/style" element={<StylePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

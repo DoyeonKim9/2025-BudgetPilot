@@ -7,14 +7,13 @@ import "../WhoPage.css";
 const whoOptions = ["혼자", "반려동물", "친구", "연인", "부모님", "기타"];
 
 const WhoPage = () => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate(); // ← 뒤로가기용
   const { goTo } = useQueryNavigator();
 
   const searchParams = new URLSearchParams(location.search);
   const regionIds = searchParams.get("region");
   const period = searchParams.get("period");
-
   const [selectedWho, setSelectedWho] = useState([]);
 
   const toggleWho = (who) => {
@@ -27,12 +26,10 @@ const WhoPage = () => {
 
   const handleNext = () => {
     if (selectedWho.length > 0) {
-      navigate("/question/style", {
-        state: {
-          region: regionIds,
-          period,
-          who: selectedWho.join("&"), // 배열로 넘김
-        },
+      goTo("/question/style", {
+        regionIds,
+        period,
+        who: selectedWho.join(","),
       });
     } else {
       alert("동행자를 1명 이상 선택해주세요!");

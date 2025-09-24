@@ -31,10 +31,8 @@ const PeriodPage = () => {
     if (selectedPeriod) {
       // 다음 페이지로 region, period 함께 넘기기
       goTo("/question/who", {
-        state: {
-          region: regionIds,
-          period: selectedPeriod,
-        },
+        regionIds,
+        period: selectedPeriod,
       });
     } else {
       alert("여행 기간을 선택해주세요!");
