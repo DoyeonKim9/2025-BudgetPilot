@@ -1,7 +1,7 @@
 [build]
-  base = "budgetpilot-frontend" 
-  command = "npm run build"
-  publish = "dist"
+  base = "budgetpilot-frontend"
+  command = "npm install && npm run build"
+  publish = "budgetpilot-frontend/dist"
   
 
 # SPA 새로고침 404 방지
