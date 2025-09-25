@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoArrowBackSharp } from "react-icons/io5";
+import { recommendHotels, getOptimalRecommendations } from "../utils/hotelRecommendation";
 import "../BudgetPage.css";
 
 const BudgetPage = () => {
@@ -26,6 +27,8 @@ const BudgetPage = () => {
   });
 
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showHotelRecommendations, setShowHotelRecommendations] = useState(false);
+  const [hotelRecommendations, setHotelRecommendations] = useState(null);
   const tooltipBtnRef = useRef(null);
   const tooltipBoxRef = useRef(null);
 
@@ -54,7 +57,7 @@ const BudgetPage = () => {
     if (totalPercent !== 100)
       return alert("총 예산 비율이 100%가 되도록 조정해주세요.");
 
-    console.log({
+    const budgetData = {
       region,
       period,
       who,
@@ -67,8 +70,25 @@ const BudgetPage = () => {
         관광: calcAmount(budget.관광),
         기타: calcAmount(budget.기타),
       },
-    });
-    alert("예산 설정 완료!");
+    };
+
+    console.log(budgetData);
+    
+    // 1박 이상이고 숙소 예산이 있을 때 호텔 추천
+    if (!isDayTrip && budget.숙소 > 0) {
+      const nights = period === "1박2일" ? 1 : period === "2박3일" ? 2 : period === "3박4일" ? 3 : 1;
+      const hotelBudget = calcAmount(budget.숙소);
+      const budgetPerNight = hotelBudget / nights;
+      
+      const recommendations = getOptimalRecommendations(budgetPerNight, nights, {
+        location: region
+      });
+      
+      setHotelRecommendations(recommendations);
+      setShowHotelRecommendations(true);
+    } else {
+      alert("예산 설정 완료!");
+    }
   };
 
   const handleBack = () => navigate(-1);
@@ -204,6 +224,77 @@ const BudgetPage = () => {
           제출
         </button>
       </footer>
+
+      {/* 호텔 추천 모달 */}
+      {showHotelRecommendations && hotelRecommendations && (
+        <div className="hotel-modal-overlay">
+          <div className="hotel-modal">
+            <div className="hotel-modal-header">
+              <h2>🏨 예산에 맞는 호텔 추천</h2>
+              <button 
+                className="close-button"
+                onClick={() => setShowHotelRecommendations(false)}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="hotel-modal-content">
+              <p className="recommendation-message">{hotelRecommendations.message}</p>
+              
+              {hotelRecommendations.recommendations.length > 0 ? (
+                <div className="hotel-list">
+                  {hotelRecommendations.recommendations.map((hotel) => (
+                    <div key={hotel.id} className="hotel-card">
+                      <img 
+                        src={hotel.image} 
+                        alt={hotel.name}
+                        className="hotel-image"
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400';
+                        }}
+                      />
+                      <div className="hotel-info">
+                        <h3 className="hotel-name">{hotel.name}</h3>
+                        <p className="hotel-location">{hotel.location}</p>
+                        <p className="hotel-description">{hotel.description}</p>
+                        <div className="hotel-rating">⭐ {hotel.rating}</div>
+                        <div className="hotel-amenities">
+                          {hotel.amenities.slice(0, 3).map((amenity, index) => (
+                            <span key={index} className="amenity-tag">{amenity}</span>
+                          ))}
+                        </div>
+                        <div className="hotel-price">
+                          <span className="price-per-night">
+                            ￦{hotel.price_per_night.toLocaleString()}/박
+                          </span>
+                          <span className="total-price">
+                            총 ￦{hotel.total_price.toLocaleString()} ({hotel.nights}박)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-hotels">
+                  <p>😔 예산 범위에 맞는 숙소를 찾을 수 없습니다.</p>
+                  <p>예산을 조정하거나 다른 지역을 선택해보세요.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="hotel-modal-footer">
+              <button 
+                className="close-modal-button"
+                onClick={() => setShowHotelRecommendations(false)}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

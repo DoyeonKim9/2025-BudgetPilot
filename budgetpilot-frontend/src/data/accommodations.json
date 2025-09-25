@@ -1,0 +1,114 @@
+{
+  "accommodations": [
+    {
+      "id": 1,
+      "name": "서울 라마다호텔",
+      "location": "서울시 중구",
+      "type": "호텔",
+      "price_per_night": 80000,
+      "rating": 4.2,
+      "amenities": ["무료WiFi", "수영장", "피트니스센터", "레스토랑"],
+      "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400",
+      "description": "시내 중심가에 위치한 비즈니스 호텔"
+    },
+    {
+      "id": 2,
+      "name": "부산 해운대 호텔",
+      "location": "부산시 해운대구",
+      "type": "호텔",
+      "price_per_night": 120000,
+      "rating": 4.5,
+      "amenities": ["무료WiFi", "바다전망", "수영장", "스파"],
+      "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400",
+      "description": "해운대 해변가의 프리미엄 호텔"
+    },
+    {
+      "id": 3,
+      "name": "제주 신라호텔",
+      "location": "제주시",
+      "type": "리조트",
+      "price_per_night": 250000,
+      "rating": 4.8,
+      "amenities": ["무료WiFi", "골프장", "스파", "다이닝", "수영장"],
+      "image": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+      "description": "제주도의 럭셔리 리조트"
+    },
+    {
+      "id": 4,
+      "name": "서울 게스트하우스",
+      "location": "서울시 마포구",
+      "type": "게스트하우스",
+      "price_per_night": 30000,
+      "rating": 4.0,
+      "amenities": ["무료WiFi", "공용주방", "라운지"],
+      "image": "https://images.unsplash.com/photo-1555854877-bab0e828d46f?w=400",
+      "description": "합리적인 가격의 친근한 게스트하우스"
+    },
+    {
+      "id": 5,
+      "name": "강릉 펜션",
+      "location": "강릉시",
+      "type": "펜션",
+      "price_per_night": 60000,
+      "rating": 4.3,
+      "amenities": ["무료WiFi", "바비큐", "주차장"],
+      "image": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+      "description": "동해바다가 보이는 아늑한 펜션"
+    },
+    {
+      "id": 6,
+      "name": "서울 롯데호텔",
+      "location": "서울시 중구",
+      "type": "호텔",
+      "price_per_night": 200000,
+      "rating": 4.7,
+      "amenities": ["무료WiFi", "스파", "피트니스센터", "레스토랑", "바"],
+      "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400",
+      "description": "서울의 대표적인 럭셔리 호텔"
+    },
+    {
+      "id": 7,
+      "name": "여수 베이사이드 호텔",
+      "location": "여수시",
+      "type": "호텔",
+      "price_per_night": 90000,
+      "rating": 4.1,
+      "amenities": ["무료WiFi", "바다전망", "수영장"],
+      "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400",
+      "description": "여수 바다를 조망할 수 있는 호텔"
+    },
+    {
+      "id": 8,
+      "name": "전주 한옥마을 게스트하우스",
+      "location": "전주시",
+      "type": "게스트하우스",
+      "price_per_night": 45000,
+      "rating": 4.4,
+      "amenities": ["무료WiFi", "한옥체험", "전통차"],
+      "image": "https://images.unsplash.com/photo-1555854877-bab0e828d46f?w=400",
+      "description": "전통 한옥에서 머물 수 있는 특별한 경험"
+    },
+    {
+      "id": 9,
+      "name": "서울 글래드호텔",
+      "location": "서울시 서초구",
+      "type": "호텔",
+      "price_per_night": 150000,
+      "rating": 4.3,
+      "amenities": ["무료WiFi", "비즈니스센터", "피트니스센터"],
+      "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400",
+      "description": "강남 비즈니스 지역의 편리한 호텔"
+    },
+    {
+      "id": 10,
+      "name": "속초 스키리조트",
+      "location": "속초시",
+      "type": "리조트",
+      "price_per_night": 180000,
+      "rating": 4.6,
+      "amenities": ["무료WiFi", "스키장", "스파", "레스토랑"],
+      "image": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+      "description": "겨울 스포츠와 휴양을 즐길 수 있는 리조트"
+    }
+  ]
+}
