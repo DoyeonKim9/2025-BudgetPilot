@@ -1,7 +1,10 @@
 [build]
   base = "budgetpilot-frontend"
-  command = "npm install && npm run build"
+  command = "npm ci && npm run build"
   publish = "budgetpilot-frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "18"
   
 
 # SPA 새로고침 404 방지
