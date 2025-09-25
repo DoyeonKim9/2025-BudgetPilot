@@ -1,7 +1,7 @@
 [build]
   base = "budgetpilot-frontend"
   command = "npm ci && npm run build"
-  publish = "budgetpilot-frontend/dist"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
