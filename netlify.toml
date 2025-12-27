@@ -18,3 +18,9 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+# 호텔 추천 API 라우팅
+[[redirects]]
+  from = "/hotels/recommend"
+  to = "/.netlify/functions/hotels-recommend"
+  status = 200

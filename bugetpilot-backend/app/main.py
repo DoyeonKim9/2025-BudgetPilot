@@ -1,0 +1,27 @@
+# backend/app/main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.routers import rooms
+
+# 1) 앱 생성
+app = FastAPI(title="Backend API")
+
+# 2) CORS 미들웨어 추가 (app 생성 이후)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(rooms.router)
+
+# 3) 라우터 등록
+import hotels  # import는 app 생성 후에
+app.include_router(hotels.router)
+
+# (옵션) 루트 핑
+@app.get("/")
+def root():
+    return {"ok": True}
