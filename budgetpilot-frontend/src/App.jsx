@@ -7,6 +7,9 @@ import WhoPage from "./pages/WhoPage";
 import StylePage from "./pages/StylePage";
 import BudgetPage from "./pages/BudgetPage";
 import HotelPage from "./pages/HotelPage";
+import RestaurantPage from "./pages/RestaurantPage";
+import TouristPage from "./pages/TouristPage";
+import FinalReportPage from "./pages/FinalReportPage";
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
           <Route path="/question/style" element={<StylePage />} />
           <Route path="/question/budget" element={<BudgetPage />} />
           <Route path="/hotel" element={<HotelPage />} />
+          <Route path="/restaurant" element={<RestaurantPage />} />
+          <Route path="/tourist" element={<TouristPage />} />
+          <Route path="/report" element={<FinalReportPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

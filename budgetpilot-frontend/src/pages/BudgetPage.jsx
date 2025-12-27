@@ -213,13 +213,15 @@ const BudgetPage = () => {
 
     // 1박 이상이고 숙소 예산이 있을 때 호텔 페이지로 이동
     if (!isDayTrip && breakdown.숙소 > 0) {
-      const queryParams = new URLSearchParams({
-        region: region || "",
-        period: period || "",
-        totalAmount: totalAmount.toString(),
-        budget: JSON.stringify(budgetData.budget),
-        breakdown: JSON.stringify(breakdown),
-      });
+      // 기존 URL 파라미터 유지
+      const queryParams = new URLSearchParams(location.search);
+      queryParams.set("region", region || "");
+      queryParams.set("period", period || "");
+      queryParams.set("who", who || "");
+      queryParams.set("style", style || "");
+      queryParams.set("totalAmount", totalAmount.toString());
+      queryParams.set("budget", JSON.stringify(budgetData.budget));
+      queryParams.set("breakdown", JSON.stringify(breakdown));
 
       navigate(`/hotel?${queryParams.toString()}`);
     } else {

@@ -1,5 +1,5 @@
-/* 호텔 페이지 스타일 */
-.hotel-page {
+/* 식당 페이지 스타일 */
+.restaurant-page {
   height: 100dvh;
   width: 100vw;
   margin: 0;
@@ -16,7 +16,7 @@
 }
 
 /* Header */
-.hotel-header {
+.restaurant-header {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,7 +35,6 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-
   background: rgba(255, 255, 255, 0.2);
   border: none;
   cursor: pointer;
@@ -149,53 +148,28 @@
   font-weight: 700;
 }
 
-/* Recommendation Banner */
-.recommendation-banner {
-  margin: 0 16px 8px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  text-align: center;
-  color: #333;
-}
-
-.recommendation-banner.good {
-  background: #e1f5fe;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-}
-
-.recommendation-banner.error {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.recommendation-banner h2 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
+.budget-value.error {
+  color: #ef4444;
   font-weight: 700;
 }
 
-.recommendation-banner p {
-  margin: 0;
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-/* Hotel Content */
-.hotel-content {
+/* Restaurant Content */
+.restaurant-content {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
   width: 100%;
+  padding-bottom: 100px;
 }
 
-.hotel-grid {
+.restaurant-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 16px;
   width: 100%;
 }
 
-.hotel-card {
+.restaurant-card {
   background: #ffffff;
   border-radius: 16px;
   overflow: hidden;
@@ -203,27 +177,38 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-.hotel-card:hover {
+.restaurant-card:hover:not(.disabled) {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-.hotel-image-container {
+.restaurant-card.selected {
+  border: 2px solid #51a8ff;
+  box-shadow: 0 8px 20px rgba(81, 168, 255, 0.3);
+}
+
+.restaurant-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.restaurant-image-container {
   position: relative;
-  height: 180px;
+  height: 160px;
   overflow: hidden;
   width: 100%;
 }
 
-.hotel-image {
+.restaurant-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.hotel-rating {
+.restaurant-rating {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -242,23 +227,42 @@
   color: #fbbf24;
 }
 
-.hotel-info {
+.restaurant-type-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  padding: 6px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.type-icon {
+  font-size: 14px;
+}
+
+.restaurant-info {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
 }
 
-.hotel-header {
+.restaurant-header {
   display: flex;
   position: relative;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.hotel-name {
+.restaurant-name {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
@@ -272,17 +276,7 @@
   overflow: hidden;
 }
 
-.hotel-type {
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  align-self: flex-start;
-}
-
-.hotel-location {
+.restaurant-location {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -293,9 +287,10 @@
 
 .location-icon {
   color: #667eea;
+  flex-shrink: 0;
 }
 
-.hotel-description {
+.restaurant-description {
   margin: 0;
   color: #666;
   font-size: 12px;
@@ -307,27 +302,18 @@
   text-overflow: ellipsis;
 }
 
-.hotel-amenities {
+.restaurant-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-.amenity-tag {
-  background: #f1f5f9;
-  color: #475569;
-  padding: 3px 6px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 500;
+.review-count {
+  font-size: 11px;
+  color: #999;
 }
 
-.amenity-tag.more {
-  background: #e2e8f0;
-  color: #64748b;
-}
-
-.hotel-price-section {
+.restaurant-price-section {
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
@@ -337,14 +323,6 @@
 }
 
 .price-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
-}
-
-.price-per-night,
-.total-price {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -357,107 +335,122 @@
 }
 
 .price-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-}
-
-.price-value.total {
   font-size: 15px;
   font-weight: 700;
   color: rgb(8, 120, 164);
 }
 
-.select-button {
-  background: linear-gradient(135deg, #51a8ff, #97c6ff);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 13px;
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  transition: transform 0.2s ease;
-  width: 100%;
+  user-select: none;
 }
 
-.select-button:hover {
-  transform: translateY(-1px);
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #51a8ff;
 }
 
-/* No Hotels */
-.no-hotels {
+.checkbox-container input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.checkbox-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+}
+
+.checkbox-container:has(input:disabled) .checkbox-label {
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* No Restaurants */
+.no-restaurants {
   text-align: center;
   padding: 60px 20px;
   color: #333;
 }
 
-.no-hotels-icon {
+.no-restaurants-icon {
   font-size: 64px;
   margin-bottom: 16px;
 }
 
-.no-hotels h3 {
+.no-restaurants h3 {
   margin: 0 0 8px 0;
   font-size: 20px;
   font-weight: 700;
 }
 
-.no-hotels p {
-  margin: 0 0 24px 0;
+.no-restaurants p {
+  margin: 0;
   font-size: 16px;
   opacity: 0.9;
 }
 
-.adjust-budget-button {
-  background: transparent;
-  color: #333;
-  border: 2px solid rgba(51, 51, 51, 0.15);
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.adjust-budget-button:hover {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: rgba(51, 51, 51, 0.2);
-}
-
 /* Footer */
-.hotel-footer {
+.restaurant-footer {
   padding: 16px 20px;
   background: #ffffff;
   border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.back-to-budget-button {
+.footer-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.footer-total {
+  font-weight: 700;
+  color: rgb(8, 120, 164);
+  font-size: 16px;
+}
+
+.complete-button {
   width: 100%;
-  background: #f1f5f9;
-  color: #1f2937;
+  background: linear-gradient(135deg, #51a8ff, #97c6ff);
+  color: white;
   border: none;
   padding: 14px;
   border-radius: 10px;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
-.back-to-budget-button:hover {
-  background: #e2e8f0;
+.complete-button:hover {
+  transform: translateY(-1px);
+}
+
+.complete-button:active {
+  transform: translateY(0);
 }
 
 /* 반응형 */
 @media (max-width: 1200px) {
-  .hotel-grid {
+  .restaurant-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .hotel-grid {
+  .restaurant-grid {
     grid-template-columns: 1fr;
   }
 
@@ -466,7 +459,7 @@
     gap: 8px;
   }
 
-  .hotel-header {
+  .restaurant-header {
     padding: 12px 16px;
   }
 
@@ -474,53 +467,28 @@
     padding: 16px;
   }
 
-  .hotel-content {
+  .restaurant-content {
     padding: 16px;
   }
 
-  .hotel-image-container {
-    height: 200px;
+  .restaurant-image-container {
+    height: 180px;
   }
 
-  .hotel-info {
+  .restaurant-info {
     padding: 16px;
   }
 
-  .hotel-name {
+  .restaurant-name {
     font-size: 18px;
   }
 
-  .hotel-location {
+  .restaurant-location {
     font-size: 14px;
   }
 
-  .hotel-description {
+  .restaurant-description {
     font-size: 14px;
-  }
-
-  .amenity-tag {
-    font-size: 12px;
-    padding: 4px 8px;
-  }
-
-  .hotel-price-section {
-    padding: 16px;
-  }
-
-  .price-label {
-    font-size: 12px;
-  }
-
-  .price-value {
-    font-size: 14px;
-  }
-
-  .price-value.total {
-    font-size: 16px;
-  }
-
-  .select-button {
-    font-size: 14px;
-    padding: 12px 20px;
   }
 }
+
