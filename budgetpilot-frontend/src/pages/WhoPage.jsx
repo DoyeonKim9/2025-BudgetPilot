@@ -43,7 +43,7 @@ const WhoPage = () => {
   return (
     <div className="container">
       <header className="region-header">
-        <button className="back-button" onClick={handleBack}>
+        <button className="style-back-button" onClick={handleBack}>
           <IoArrowBackSharp size={24} />
         </button>
         <span className="step-indicator">3/5</span>

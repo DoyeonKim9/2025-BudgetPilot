@@ -6,16 +6,19 @@
 }
 
 .final-report-page {
-  min-height: 100dvh;
-  height: auto;
+  height: 100dvh;
   width: 100vw;
   margin: 0;
   padding: 0;
   background: rgb(186, 227, 243);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 /* Header */
@@ -34,7 +37,7 @@
   gap: 12px;
 }
 
-.back-button {
+.final-report-page .back-button {
   position: absolute;
   left: 16px;
   top: 50%;
@@ -57,7 +60,7 @@
   min-height: 32px;
 }
 
-.back-button:hover {
+.final-report-page .back-button:hover {
   background: rgba(255, 255, 255, 0.4);
   transform: scale(1.05);
 }
@@ -119,9 +122,18 @@
   margin-bottom: 16px;
 }
 
+/* Scrollable Content Wrapper */
+.report-content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
 /* Summary Section */
 .summary-section {
   padding: 16px;
+  flex-shrink: 0;
 }
 
 .summary-card {
@@ -229,6 +241,7 @@
 /* Schedule Content */
 .schedule-content {
   padding: 0 16px 16px;
+  flex: 1;
 }
 
 .schedule-title {
@@ -435,4 +448,3 @@
     min-width: auto;
   }
 }
-

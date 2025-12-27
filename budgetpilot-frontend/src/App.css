@@ -42,7 +42,9 @@
   top: 60px; /* header height */
   bottom: 60px; /* footer height */
   overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
-  padding: 24px 16px;
+  padding: 0;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }

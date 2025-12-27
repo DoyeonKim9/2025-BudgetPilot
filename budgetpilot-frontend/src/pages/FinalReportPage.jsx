@@ -25,7 +25,7 @@ const FinalReportPage = () => {
   const totalAmount = Number(searchParams.get("totalAmount")) || 0;
   const hotelId = searchParams.get("hotelId") || "";
   const hotelName = decodeURIComponent(searchParams.get("hotelName") || "");
-  
+
   const budgetStr = useMemo(
     () => searchParams.get("budget") || "{}",
     [searchParams]
@@ -51,13 +51,18 @@ const FinalReportPage = () => {
     }
   }, [breakdownStr]);
 
-  const selectedRestaurantsStr = searchParams.get("selectedRestaurants") || "[]";
+  const selectedRestaurantsStr =
+    searchParams.get("selectedRestaurants") || "[]";
   const selectedRestaurants = useMemo(() => {
     try {
       // URLSearchParams.get()은 자동으로 디코딩하므로 바로 파싱
       return JSON.parse(selectedRestaurantsStr);
     } catch (e) {
-      console.error("Failed to parse selectedRestaurants:", e, selectedRestaurantsStr);
+      console.error(
+        "Failed to parse selectedRestaurants:",
+        e,
+        selectedRestaurantsStr
+      );
       return [];
     }
   }, [selectedRestaurantsStr]);
@@ -70,12 +75,17 @@ const FinalReportPage = () => {
       console.log("Selected Tourists:", parsed); // 디버깅용
       return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      console.error("Failed to parse selectedTourists:", e, selectedTouristsStr);
+      console.error(
+        "Failed to parse selectedTourists:",
+        e,
+        selectedTouristsStr
+      );
       return [];
     }
   }, [selectedTouristsStr]);
 
-  const restaurantTotalPrice = Number(searchParams.get("restaurantTotalPrice")) || 0;
+  const restaurantTotalPrice =
+    Number(searchParams.get("restaurantTotalPrice")) || 0;
   const touristTotalPrice = Number(searchParams.get("touristTotalPrice")) || 0;
 
   const [schedule, setSchedule] = useState(null);
@@ -94,8 +104,7 @@ const FinalReportPage = () => {
       setError("");
 
       try {
-        // LLM API 호출 (백엔드 엔드포인트가 있다면 사용, 없으면 임시 데이터)
-        // TODO: 실제 백엔드 API 엔드포인트로 교체
+        // LLM API 호출
         const scheduleData = await generateScheduleWithLLM({
           region,
           period,
@@ -106,12 +115,15 @@ const FinalReportPage = () => {
           selectedRestaurants,
           selectedTourists,
           budget: breakdown,
+          restaurantTotalPrice,
+          touristTotalPrice,
         });
 
         setSchedule(scheduleData);
       } catch (err) {
         console.error("일정 생성 실패:", err);
-        // 에러 발생 시 기본 일정 생성
+        setError(err.message || "일정 생성에 실패했습니다.");
+        // 에러 발생 시 기본 일정 생성으로 폴백
         setSchedule(generateDefaultSchedule());
       } finally {
         setLoading(false);
@@ -119,80 +131,171 @@ const FinalReportPage = () => {
     };
 
     generateSchedule();
-  }, [region, period, nights, who, style, hotelName, selectedRestaurants, selectedTourists, breakdown]);
+  }, [
+    region,
+    period,
+    nights,
+    who,
+    style,
+    hotelName,
+    selectedRestaurants,
+    selectedTourists,
+    breakdown,
+  ]);
 
-  // LLM으로 일정 생성 (임시 구현 - 실제로는 백엔드 API 호출)
+  // LLM으로 일정 생성 (백엔드 API 호출)
   const generateScheduleWithLLM = async (data) => {
-    // TODO: 실제 백엔드 API 호출
-    // const response = await fetch(`${BACKEND_URL}/schedule/generate`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data)
-    // });
-    // return await response.json();
+    try {
+      const response = await fetch(`${BACKEND_URL}/schedule/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          region: data.region,
+          period: data.period,
+          nights: data.nights,
+          who: data.who || "",
+          style: data.style || "",
+          hotelName: data.hotelName || "",
+          selectedRestaurants: data.selectedRestaurants || [],
+          selectedTourists: data.selectedTourists || [],
+          budget: data.budget || {},
+          totalAmount: totalAmount,
+          restaurantTotalPrice: data.restaurantTotalPrice || 0,
+          touristTotalPrice: data.touristTotalPrice || 0,
+        }),
+      });
 
-    // 임시: 기본 일정 생성
-    return generateDefaultSchedule();
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ detail: response.statusText }));
+        throw new Error(errorData.detail || `HTTP ${response.status}`);
+      }
+
+      const scheduleData = await response.json();
+      console.log("LLM 생성 일정:", scheduleData); // 디버깅용
+
+      // 응답 검증
+      if (
+        !scheduleData.days ||
+        !Array.isArray(scheduleData.days) ||
+        scheduleData.days.length === 0
+      ) {
+        throw new Error("일정 데이터가 올바르지 않습니다.");
+      }
+
+      return scheduleData;
+    } catch (err) {
+      console.error("LLM 일정 생성 실패:", err);
+      // 에러 발생 시 기본 일정 생성으로 폴백
+      throw err;
+    }
   };
 
   // 기본 일정 생성 (LLM 대신 사용)
   const generateDefaultSchedule = () => {
     const days = [];
-    const restaurantNames = selectedRestaurants.map(r => r.name);
-    const touristNames = selectedTourists.map(t => t.name);
+    const restaurantNames = selectedRestaurants.map((r) => r.name);
+    const touristNames = selectedTourists.map((t) => t.name);
+
+    // 식당과 관광지를 날짜별로 분배
+    const restaurantsPerDay = Math.ceil(restaurantNames.length / (nights + 1));
+    const touristsPerDay = Math.ceil(touristNames.length / (nights + 1));
 
     for (let day = 1; day <= nights + 1; day++) {
       const daySchedule = {
         day,
-        date: `Day ${day}`,
+        date: `${day}일차`,
         activities: [],
       };
 
-      // 아침
+      // 첫날 체크인
       if (day === 1) {
         daySchedule.activities.push({
-          time: "09:00",
+          time: "15:00",
           type: "hotel",
           title: "숙소 체크인",
-          description: `${hotelName}에서 체크인하고 짐을 풀어요.`,
-          location: hotelName,
+          description: `${hotelName || "숙소"}에서 체크인하고 짐을 풀어요.`,
+          location: hotelName || region,
         });
+      }
+
+      // 아침 (2일차부터)
+      if (day > 1 && restaurantNames.length > 0) {
+        const breakfastIndex = (day - 2) * restaurantsPerDay;
+        if (breakfastIndex < restaurantNames.length) {
+          daySchedule.activities.push({
+            time: "09:00",
+            type: "restaurant",
+            title: restaurantNames[breakfastIndex],
+            description: `${restaurantNames[breakfastIndex]}에서 아침 식사를 즐겨요.`,
+            location: restaurantNames[breakfastIndex],
+          });
+        }
+      }
+
+      // 관광지 (오전)
+      if (touristNames.length > 0) {
+        const touristStartIndex = (day - 1) * touristsPerDay;
+        for (
+          let i = 0;
+          i < touristsPerDay && touristStartIndex + i < touristNames.length;
+          i++
+        ) {
+          const touristIndex = touristStartIndex + i;
+          daySchedule.activities.push({
+            time: day === 1 ? "16:00" : "10:00",
+            type: "tourist",
+            title: touristNames[touristIndex],
+            description: `${touristNames[touristIndex]}를 둘러보며 즐거운 시간을 보내요.`,
+            location: touristNames[touristIndex],
+          });
+        }
       }
 
       // 점심
       if (restaurantNames.length > 0) {
-        const lunchIndex = (day - 1) % restaurantNames.length;
-        daySchedule.activities.push({
-          time: "12:00",
-          type: "restaurant",
-          title: restaurantNames[lunchIndex] || "점심 식사",
-          description: "선택한 맛집에서 점심을 즐겨요.",
-          location: region,
-        });
+        const lunchIndex = (day - 1) * restaurantsPerDay + (day === 1 ? 0 : 1);
+        if (lunchIndex < restaurantNames.length) {
+          daySchedule.activities.push({
+            time: "12:00",
+            type: "restaurant",
+            title: restaurantNames[lunchIndex],
+            description: `${restaurantNames[lunchIndex]}에서 점심 식사를 즐겨요.`,
+            location: restaurantNames[lunchIndex],
+          });
+        }
       }
 
-      // 관광지
-      if (touristNames.length > 0) {
-        const touristIndex = (day - 1) % touristNames.length;
-        daySchedule.activities.push({
-          time: "14:00",
-          type: "tourist",
-          title: touristNames[touristIndex] || "관광지 탐방",
-          description: "선택한 관광지를 둘러봐요.",
-          location: region,
-        });
+      // 관광지 (오후)
+      if (touristNames.length > touristsPerDay) {
+        const touristAfternoonIndex =
+          (day - 1) * touristsPerDay + touristsPerDay;
+        if (touristAfternoonIndex < touristNames.length) {
+          daySchedule.activities.push({
+            time: "14:00",
+            type: "tourist",
+            title: touristNames[touristAfternoonIndex],
+            description: `${touristNames[touristAfternoonIndex]}를 둘러보며 즐거운 시간을 보내요.`,
+            location: touristNames[touristAfternoonIndex],
+          });
+        }
       }
 
       // 저녁
-      if (restaurantNames.length > 1) {
-        const dinnerIndex = (day) % restaurantNames.length;
-        daySchedule.activities.push({
-          time: "18:00",
-          type: "restaurant",
-          title: restaurantNames[dinnerIndex] || "저녁 식사",
-          description: "선택한 맛집에서 저녁을 즐겨요.",
-          location: region,
-        });
+      if (restaurantNames.length > 0) {
+        const dinnerIndex = (day - 1) * restaurantsPerDay + (day === 1 ? 1 : 2);
+        if (dinnerIndex < restaurantNames.length) {
+          daySchedule.activities.push({
+            time: "18:00",
+            type: "restaurant",
+            title: restaurantNames[dinnerIndex],
+            description: `${restaurantNames[dinnerIndex]}에서 저녁 식사를 즐겨요.`,
+            location: restaurantNames[dinnerIndex],
+          });
+        }
       }
 
       // 마지막 날 체크아웃
@@ -201,8 +304,10 @@ const FinalReportPage = () => {
           time: "11:00",
           type: "hotel",
           title: "숙소 체크아웃",
-          description: `${hotelName}에서 체크아웃하고 여행을 마무리해요.`,
-          location: hotelName,
+          description: `${
+            hotelName || "숙소"
+          }에서 체크아웃하고 여행을 마무리해요.`,
+          location: hotelName || region,
         });
       }
 
@@ -217,7 +322,8 @@ const FinalReportPage = () => {
         who,
         style,
         totalBudget: totalAmount,
-        usedBudget: (breakdown.숙소 || 0) + restaurantTotalPrice + touristTotalPrice,
+        usedBudget:
+          (breakdown.숙소 || 0) + restaurantTotalPrice + touristTotalPrice,
       },
       days,
       recommendations: [
@@ -291,164 +397,179 @@ const FinalReportPage = () => {
         <span className="page-title">📋 여행 일정 리포트</span>
       </header>
 
-      {/* Summary Card */}
-      <div className="summary-section">
-        <div className="summary-card">
-          <h2>여행 요약</h2>
-          <div className="summary-grid">
-            <div className="summary-item">
-              <span className="summary-label">여행지</span>
-              <span className="summary-value">{region}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">기간</span>
-              <span className="summary-value">{period}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">동행</span>
-              <span className="summary-value">{who.trim() || "미지정"}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">스타일</span>
-              <span className="summary-value">{style.trim() || "미지정"}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">총 예산</span>
-              <span className="summary-value highlight">
-                {formatCurrency(totalAmount)}
-              </span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">사용 예산</span>
-              <span className="summary-value">
-                {formatCurrency(
-                  (breakdown.숙소 || 0) + restaurantTotalPrice + touristTotalPrice
-                )}
-              </span>
+      {/* Scrollable Content */}
+      <div className="report-content-wrapper">
+        {/* Summary Card */}
+        <div className="summary-section">
+          <div className="summary-card">
+            <h2>여행 요약</h2>
+            <div className="summary-grid">
+              <div className="summary-item">
+                <span className="summary-label">여행지</span>
+                <span className="summary-value">{region}</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">기간</span>
+                <span className="summary-value">{period}</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">동행</span>
+                <span className="summary-value">{who.trim() || "미지정"}</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">스타일</span>
+                <span className="summary-value">
+                  {style.trim() || "미지정"}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">총 예산</span>
+                <span className="summary-value highlight">
+                  {formatCurrency(totalAmount)}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">사용 예산</span>
+                <span className="summary-value">
+                  {formatCurrency(
+                    (breakdown.숙소 || 0) +
+                      restaurantTotalPrice +
+                      touristTotalPrice
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Selected Items */}
-      <div className="selected-items-section">
-        <div className="selected-card">
-          <h3>선택한 숙소</h3>
-          <div className="selected-item">
-            <MdHotel className="selected-icon" />
-            <span>{hotelName || "미선택"}</span>
+        {/* Selected Items */}
+        <div className="selected-items-section">
+          <div className="selected-card">
+            <h3>선택한 숙소</h3>
+            <div className="selected-item">
+              <MdHotel className="selected-icon" />
+              <span>{hotelName || "미선택"}</span>
+            </div>
+          </div>
+
+          <div className="selected-card">
+            <h3>선택한 식당 ({selectedRestaurants.length}개)</h3>
+            {selectedRestaurants.length > 0 ? (
+              selectedRestaurants.map((restaurant, idx) => (
+                <div key={idx} className="selected-item">
+                  <MdRestaurant className="selected-icon" />
+                  <span>{restaurant.name}</span>
+                  <span className="selected-price">
+                    {formatCurrency(restaurant.price)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="no-selection">선택한 식당이 없습니다.</p>
+            )}
+          </div>
+
+          <div className="selected-card">
+            <h3>선택한 관광지 ({selectedTourists.length}개)</h3>
+            {selectedTourists.length > 0 ? (
+              selectedTourists.map((tourist, idx) => (
+                <div key={idx} className="selected-item">
+                  <MdCameraAlt className="selected-icon" />
+                  <span>{tourist.name}</span>
+                  <span className="selected-price">
+                    {tourist.price === 0
+                      ? "무료"
+                      : formatCurrency(tourist.price)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="no-selection">선택한 관광지가 없습니다.</p>
+            )}
           </div>
         </div>
 
-        <div className="selected-card">
-          <h3>선택한 식당 ({selectedRestaurants.length}개)</h3>
-          {selectedRestaurants.length > 0 ? (
-            selectedRestaurants.map((restaurant, idx) => (
-              <div key={idx} className="selected-item">
-                <MdRestaurant className="selected-icon" />
-                <span>{restaurant.name}</span>
-                <span className="selected-price">
-                  {formatCurrency(restaurant.price)}
-                </span>
-              </div>
-            ))
-          ) : (
-            <p className="no-selection">선택한 식당이 없습니다.</p>
-          )}
-        </div>
-
-        <div className="selected-card">
-          <h3>선택한 관광지 ({selectedTourists.length}개)</h3>
-          {selectedTourists.length > 0 ? (
-            selectedTourists.map((tourist, idx) => (
-              <div key={idx} className="selected-item">
-                <MdCameraAlt className="selected-icon" />
-                <span>{tourist.name}</span>
-                <span className="selected-price">
-                  {tourist.price === 0 ? "무료" : formatCurrency(tourist.price)}
-                </span>
-              </div>
-            ))
-          ) : (
-            <p className="no-selection">선택한 관광지가 없습니다.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Schedule */}
-      {schedule && (
-        <main className="schedule-content">
-          <h2 className="schedule-title">📅 상세 일정</h2>
-          {schedule.days.map((day, dayIdx) => (
-            <div key={dayIdx} className="day-card">
-              <div className="day-header">
-                <h3>{day.date}</h3>
-              </div>
-              <div className="activities-list">
-                {day.activities.map((activity, actIdx) => (
-                  <div
-                    key={actIdx}
-                    className="activity-item"
-                    style={{ borderLeftColor: getActivityColor(activity.type) }}
-                  >
-                    <div className="activity-time">
-                      <IoTime className="time-icon" />
-                      <span>{activity.time}</span>
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-header">
-                        <div
-                          className="activity-icon-wrapper"
-                          style={{
-                            backgroundColor: `${getActivityColor(activity.type)}15`,
-                            color: getActivityColor(activity.type),
-                          }}
-                        >
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="activity-info">
-                          <h4 className="activity-title">{activity.title}</h4>
-                          <div className="activity-location">
-                            <IoLocation className="location-icon-small" />
-                            <span>{activity.location}</span>
+        {/* Schedule */}
+        {schedule && schedule.days && schedule.days.length > 0 && (
+          <main className="schedule-content">
+            <h2 className="schedule-title">📅 상세 일정</h2>
+            {schedule.days.map((day, dayIdx) => (
+              <div key={dayIdx} className="day-card">
+                <div className="day-header">
+                  <h3>{day.date || `${day.day}일차`}</h3>
+                </div>
+                <div className="activities-list">
+                  {day.activities.map((activity, actIdx) => (
+                    <div
+                      key={actIdx}
+                      className="activity-item"
+                      style={{
+                        borderLeftColor: getActivityColor(activity.type),
+                      }}
+                    >
+                      <div className="activity-time">
+                        <IoTime className="time-icon" />
+                        <span>{activity.time}</span>
+                      </div>
+                      <div className="activity-content">
+                        <div className="activity-header">
+                          <div
+                            className="activity-icon-wrapper"
+                            style={{
+                              backgroundColor: `${getActivityColor(
+                                activity.type
+                              )}15`,
+                              color: getActivityColor(activity.type),
+                            }}
+                          >
+                            {getActivityIcon(activity.type)}
+                          </div>
+                          <div className="activity-info">
+                            <h4 className="activity-title">{activity.title}</h4>
+                            <div className="activity-location">
+                              <IoLocation className="location-icon-small" />
+                              <span>{activity.location}</span>
+                            </div>
                           </div>
                         </div>
+                        <p className="activity-description">
+                          {activity.description}
+                        </p>
                       </div>
-                      <p className="activity-description">
-                        {activity.description}
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+            ))}
+          </main>
+        )}
+
+        {/* Recommendations */}
+        {schedule && schedule.recommendations && (
+          <div className="recommendations-section">
+            <div className="recommendations-card">
+              <h3>💡 여행 팁</h3>
+              <ul className="recommendations-list">
+                {schedule.recommendations.map((rec, idx) => (
+                  <li key={idx}>{rec}</li>
+                ))}
+              </ul>
             </div>
-          ))}
-        </main>
-      )}
-
-      {/* Recommendations */}
-      {schedule && schedule.recommendations && (
-        <div className="recommendations-section">
-          <div className="recommendations-card">
-            <h3>💡 여행 팁</h3>
-            <ul className="recommendations-list">
-              {schedule.recommendations.map((rec, idx) => (
-                <li key={idx}>{rec}</li>
-              ))}
-            </ul>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Footer */}
-      <footer className="report-footer">
-        <button className="share-button" onClick={() => alert("공유 기능은 준비 중입니다.")}>
-          일정 공유하기
-        </button>
-      </footer>
+        {/* Footer */}
+        <footer className="report-footer">
+          <button
+            className="share-button"
+            onClick={() => alert("공유 기능은 준비 중입니다.")}
+          >
+            일정 공유하기
+          </button>
+        </footer>
+      </div>
     </div>
   );
 };
 
 export default FinalReportPage;
-

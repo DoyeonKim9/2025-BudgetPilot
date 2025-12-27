@@ -1,7 +1,7 @@
 # backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import rooms
+from app.routers import rooms, schedule
 
 # 1) 앱 생성
 app = FastAPI(title="Backend API")
@@ -16,6 +16,7 @@ app.add_middleware(
 )
 
 app.include_router(rooms.router)
+app.include_router(schedule.router)
 
 # 3) 라우터 등록
 import hotels  # import는 app 생성 후에

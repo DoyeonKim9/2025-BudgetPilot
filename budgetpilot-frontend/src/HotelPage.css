@@ -16,7 +16,7 @@
 }
 
 /* Header */
-.hotel-header {
+.hotel-page .hotel-header {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,7 +30,7 @@
   gap: 12px;
 }
 
-.back-button {
+.hotel-page .back-button {
   position: absolute;
   left: 16px;
   top: 50%;
@@ -54,7 +54,7 @@
   min-height: 32px;
 }
 
-.back-button:hover {
+.hotel-page .back-button:hover {
   background: rgba(255, 255, 255, 0.4);
   transform: scale(1.05);
 }
