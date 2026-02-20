@@ -15,9 +15,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import rooms, schedule
+from app.routers import rooms, schedule, restaurants
 
-# GET /rooms (끝에 슬래시 없음) 명시 등록 — 일부 환경에서 404 방지
+# GET /rooms (끝에 슬래시 없음) 명시 등록
 @app.get("/rooms")
 def get_rooms(
     city_keyword: Optional[str] = Query(None),
@@ -27,8 +27,18 @@ def get_rooms(
 ):
     return rooms.list_rooms(city_keyword, max_price, min_rating, include_images)
 
+# GET /restaurants 명시 등록
+@app.get("/restaurants")
+def get_restaurants(
+    city_keyword: Optional[str] = Query(None),
+    max_price: Optional[int] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+):
+    return restaurants.list_restaurants(city_keyword, max_price, limit)
+
 app.include_router(rooms.router)
 app.include_router(schedule.router)
+app.include_router(restaurants.router)
 
 # 3) 라우터 등록
 import hotels  # import는 app 생성 후에

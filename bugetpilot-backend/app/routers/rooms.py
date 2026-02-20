@@ -13,9 +13,9 @@ router = APIRouter(prefix="/rooms", tags=["rooms"])
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 ROOMS_CSV = DATA_DIR / "dummy_rooms.csv"
 IMAGES_CSV = DATA_DIR / "dummy_room_images.csv"
-# 문화체육관광부 전국 호텔 현황 CSV (프로젝트 루트 또는 app/data)
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-CULTURE_CSV = PROJECT_ROOT / "문화체육관광부_전국호텔현황_20230405.csv"
+# 문화체육관광부 전국 호텔 현황 CSV (백엔드 폴더 또는 app/data)
+BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
+CULTURE_CSV = BACKEND_ROOT / "문화체육관광부_전국호텔현황_20230405.csv"
 CULTURE_CSV_IN_DATA = DATA_DIR / "문화체육관광부_전국호텔현황_20230405.csv"
 
 _rooms: List[Room] = []

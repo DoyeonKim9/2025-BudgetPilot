@@ -172,16 +172,45 @@ const RestaurantPage = () => {
   ];
 
   useEffect(() => {
-    // TODO: 백엔드 API에서 식당 데이터 가져오기
-    // 현재는 강릉 지역만 임시 데이터 사용
-    if (region.includes("강릉") || region === "강릉") {
-      setRestaurants(gangneungRestaurants);
-    } else {
-      // 다른 지역은 빈 배열 또는 기본 데이터
-      setRestaurants([]);
-    }
-    setLoading(false);
-  }, [region]);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (region) params.set("city_keyword", region);
+        if (foodBudget > 0) params.set("max_price", String(foodBudget));
+        params.set("limit", "80");
+        const res = await fetch(`${BACKEND_URL}/restaurants?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          const list = Array.isArray(data) ? data : [];
+          setRestaurants(list.map((r, i) => ({
+            id: r.id || `r-${i}`,
+            name: r.name || "(이름 없음)",
+            type: r.type || "식당",
+            location: r.location || "",
+            price: Number(r.price) || 10000,
+            description: r.description || "",
+            image: r.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+            rating: r.rating ?? 4.0,
+            reviewCount: r.reviewCount ?? 0,
+          })));
+        }
+      } catch (e) {
+        console.warn("식당 API 실패, 임시 데이터 사용:", e);
+        if (!cancelled) {
+          if (region.includes("강릉") || region === "강릉") {
+            setRestaurants(gangneungRestaurants);
+          } else {
+            setRestaurants([]);
+          }
+        }
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [region, foodBudget]);
 
   const handleRestaurantToggle = (restaurantId, price) => {
     setSelectedRestaurants((prev) => {
