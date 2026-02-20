@@ -10,25 +10,29 @@ from app.models import Room, RoomImage, RoomWithImages
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 
-# app/data (dummy csv들이 들어있는 위치)
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+# app 패키지 기준 data (app/data)
+APP_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = APP_ROOT / "data"
+
 ROOMS_CSV = DATA_DIR / "dummy_rooms.csv"
 IMAGES_CSV = DATA_DIR / "dummy_room_images.csv"
 
-# 프로젝트/백엔드 루트(= bugetpilot-backend)
-BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
-
-# 문화체육관광부 전국 호텔 현황 CSV
-# (레포에서 실제로는 bugetpilot-backend/data 밑에 있는 경우가 많아서 경로 후보를 여러 개로 둠)
+# 백엔드 루트(/app) 기준
+BACKEND_ROOT = APP_ROOT.parent  # .../app
 CULTURE_FILENAME = "문화체육관광부_전국호텔현황_20230405.csv"
+
+# 문화 CSV 후보 경로들 (여기가 핵심!)
+CULTURE_CSV_CANDIDATES = [
+    BACKEND_ROOT / CULTURE_FILENAME,                  # /app/파일명
+    BACKEND_ROOT / "data" / CULTURE_FILENAME,         # /app/data/파일명  ✅ 너 레포 구조
+    DATA_DIR / CULTURE_FILENAME,                      # /app/app/data/파일명
+]
 
 _rooms: List[Room] = []
 _room_images: List[RoomImage] = []
 _room_image_map: Dict[int, List[str]] = {}
 
-# 등급별 기본 1박 요금 (CSV에 가격 없음)
 STAR_DEFAULT_PRICE = {1: 35_000, 2: 55_000, 3: 80_000, 4: 120_000, 5: 180_000}
-# 등급별 플레이스홀더 이미지
 STAR_IMAGES = {
     1: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"],
     2: ["https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800"],
@@ -39,7 +43,6 @@ STAR_IMAGES = {
 
 
 def _star_from_grade(grade_str: str) -> int:
-    """'3성' -> 3"""
     if pd.isna(grade_str) or not isinstance(grade_str, str):
         return 3
     m = re.search(r"(\d)성", str(grade_str).strip())
@@ -47,7 +50,6 @@ def _star_from_grade(grade_str: str) -> int:
 
 
 def generate_korean_description(room_data) -> str:
-    """숙소 정보를 바탕으로 한국어 설명 생성"""
     bedroom_count = room_data.get("bedroom_count", 0)
     bed_count = room_data.get("bed_count", 0)
     bathroom_count = room_data.get("bathroom_count", 0)
@@ -56,30 +58,20 @@ def generate_korean_description(room_data) -> str:
     address = room_data.get("address", "")
 
     descriptions = []
-
-    # 침실 정보
     if bedroom_count > 0:
         descriptions.append(f"{bedroom_count}개의 침실")
-
-    # 침대 정보
     if bed_count > 0:
         descriptions.append(f"침대 {bed_count}개")
-
-    # 욕실 정보
     if bathroom_count > 0:
         descriptions.append(f"욕실 {bathroom_count}개")
-
-    # 수용 인원
     if headcount_capacity > 0:
         descriptions.append(f"최대 {headcount_capacity}인")
 
-    # 기본 설명 생성
     if descriptions:
         base_desc = f"편안하고 깔끔한 숙소입니다. {'과 '.join(descriptions)}를 갖추고 있어 있습니다. "
     else:
         base_desc = "편안하고 깔끔한 숙소입니다. "
 
-    # 숙소 타입별 추가 설명
     title_lower = title.lower()
     if "호텔" in title or "hotel" in title_lower:
         base_desc += "전문적인 서비스와 깔끔한 객실을 제공합니다."
@@ -96,7 +88,6 @@ def generate_korean_description(room_data) -> str:
     else:
         base_desc += "편안한 휴식을 즐길 수 있는 숙소입니다."
 
-    # 위치 정보 추가
     if address:
         if "서울" in address:
             base_desc += " 서울의 중심지 근처에 위치해 있어 관광과 쇼핑에 편리합니다."
@@ -110,80 +101,85 @@ def generate_korean_description(room_data) -> str:
     return base_desc
 
 
-def _load_culture_hotels() -> bool:
-    """문화체육관광부 전국 호텔 현황 CSV 로드. 성공 시 True."""
-    global _rooms, _room_images, _room_image_map
+def _read_csv_robust(csv_path: Path) -> Optional[pd.DataFrame]:
+    """encoding/strip까지 포함해서 최대한 안전하게 CSV 읽기"""
+    if not csv_path.exists():
+        return None
 
-    # 1) 파일 경로 후보를 넓게 탐색
-    candidates = [
-        BACKEND_ROOT / CULTURE_FILENAME,                # bugetpilot-backend/문화...
-        BACKEND_ROOT / "data" / CULTURE_FILENAME,      # bugetpilot-backend/data/문화...
-        DATA_DIR / CULTURE_FILENAME,                    # bugetpilot-backend/app/data/문화...
-        Path.cwd() / CULTURE_FILENAME,                  # 실행 디렉토리
-        Path.cwd() / "data" / CULTURE_FILENAME,
-    ]
-    csv_path = next((p for p in candidates if p.exists()), None)
-    if csv_path is None:
-        return False
-
-    # 2) 인코딩을 여러 후보로 시도 (BOM 포함 utf-8-sig도 포함)
-    df = None
-    for enc in ("utf-8-sig", "utf-8", "cp949", "euc-kr"):
+    # utf-8-sig 먼저 (BOM 대응)
+    for enc in ("utf-8-sig", "utf-8", "cp949"):
         try:
             df = pd.read_csv(csv_path, encoding=enc)
-            break
-        except UnicodeDecodeError:
-            continue
+            df.columns = df.columns.astype(str).str.strip()
+            return df
         except Exception:
             continue
+    return None
+
+
+def _load_culture_hotels() -> bool:
+    global _rooms, _room_images, _room_image_map
+
+    csv_path = next((p for p in CULTURE_CSV_CANDIDATES if p.exists()), None)
+    if not csv_path:
+        return False
+
+    df = _read_csv_robust(csv_path)
     if df is None:
         return False
 
-    # 3) 컬럼명 공백/개행 제거
-    df.columns = df.columns.astype(str).str.strip()
-
-    # 컬럼: 등급 인정처, 호텔업 구분, 결정 등급, 등급 결정일, 지역, 호텔명, 객실수, 주소, 전화번호, 홈페이지
-    if "호텔명" not in df.columns or "지역" not in df.columns:
+    # 필수 컬럼(공백/변형 대비)
+    required_cols = {"호텔명", "지역"}
+    if not required_cols.issubset(set(df.columns)):
         return False
 
     _rooms = []
     _room_image_map = {}
+
     for idx, row in df.iterrows():
         star = _star_from_grade(str(row.get("결정 등급", "3성")))
         star = max(1, min(5, star))
-        title = str(row.get("호텔명", "")).strip()
-        address = str(row.get("주소", "")).strip()
-        region = str(row.get("지역", "")).strip()
+
+        title = str(row.get("호텔명", "") or "").strip()
+        address = str(row.get("주소", "") or "").strip()
+        region = str(row.get("지역", "") or "").strip()
         if not title:
             continue
 
         room_count = 0
         try:
-            room_count = int(row.get("객실수", 0) or 0)
-        except (ValueError, TypeError):
-            pass
+            room_count = int(float(row.get("객실수", 0) or 0))
+        except Exception:
+            room_count = 0
 
-        daily_price = STAR_DEFAULT_PRICE.get(star, 80000)
-        # 객실수로 약간 변동 (같은 등급 내 다양성)
+        daily_price = STAR_DEFAULT_PRICE.get(star, 80_000)
         if room_count > 0:
             daily_price = int(daily_price * (0.9 + (idx % 20) / 200.0))
 
-        description = f"{region} {star}성급 호텔입니다. 객실 {room_count}개 보유."
-        room_id = idx + 1
+        room_id = int(idx) + 1
+        room_data = {
+            "bedroom_count": 1,
+            "bed_count": min(2, max(1, room_count // 50)) if room_count else 1,
+            "bathroom_count": 1,
+            "headcount_capacity": min(4, max(2, room_count // 30)) if room_count else 2,
+            "title": title,
+            "address": address or region,
+        }
+        korean_description = generate_korean_description(room_data)
 
         _rooms.append(
             Room(
                 room_id=room_id,
                 host_id=1,
                 title=title,
-                description=description,
+                description=korean_description,
                 address=address or region,
                 lat=0.0,
                 lng=0.0,
-                bathroom_count=1,
-                bed_count=min(2, max(1, room_count // 50)) if room_count else 1,
-                bedroom_count=1,
-                headcount_capacity=min(4, max(2, room_count // 30)) if room_count else 2,
+                bathroom_count=room_data["bathroom_count"],
+                bed_count=room_data["bed_count"],
+                bedroom_count=room_data["bedroom_count"],
+                headcount_capacity=room_data["headcount_capacity"],
                 cleaning_fee=0,
                 daily_price=daily_price,
                 lodging_tax_ratio=0.0,
@@ -202,22 +198,17 @@ def _load_culture_hotels() -> bool:
 def load_data():
     global _rooms, _room_images, _room_image_map
 
-    try:
-        if _load_culture_hotels():
-            return
-    except Exception:
-        pass
+    # 1) 문화 CSV 우선
+    if _load_culture_hotels():
+        return
 
-    try:
-        # --- fallback: dummy rooms ---
-        df_rooms = pd.read_csv(ROOMS_CSV)
-        df_rooms.columns = df_rooms.columns.str.strip()
-    except Exception:
+    # 2) fallback dummy
+    df_rooms = _read_csv_robust(ROOMS_CSV)
+    if df_rooms is None:
         _rooms = []
         _room_image_map = {}
         return
 
-    # room_id 없으면 index 기반으로 생성
     if "room_id" not in df_rooms.columns:
         df_rooms["room_id"] = df_rooms.index + 1
 
@@ -247,13 +238,12 @@ def load_data():
             "title": str(row.get("title", "") or ""),
             "address": str(row.get("address", "") or ""),
         }
-
         korean_description = generate_korean_description(room_data)
 
         _rooms.append(
             Room(
-                room_id=_to_int(row.get("room_id")),
-                host_id=_to_int(row.get("host_id", 1), default=1),
+                room_id=_to_int(row.get("room_id", 0), 0),
+                host_id=_to_int(row.get("host_id", 1), 1),
                 title=room_data["title"],
                 description=korean_description,
                 address=room_data["address"],
@@ -273,20 +263,17 @@ def load_data():
             )
         )
 
-    # --- room_images ---
-    df_images = pd.read_csv(IMAGES_CSV)
-    df_images.columns = df_images.columns.astype(str).str.strip()
-
+    df_images = _read_csv_robust(IMAGES_CSV)
     _room_images = []
     image_map: Dict[int, List[str]] = {}
-    for _, row in df_images.iterrows():
-        room_id = _to_int(row.get("room_id"), default=0)
-        image_url = str(row.get("image_url", "") or "")
-        if room_id <= 0 or not image_url:
-            continue
-        img = RoomImage(room_id=room_id, image_url=image_url)
-        _room_images.append(img)
-        image_map.setdefault(room_id, []).append(img.image_url)
+    if df_images is not None and {"room_id", "image_url"}.issubset(set(df_images.columns)):
+        for _, row in df_images.iterrows():
+            room_id = _to_int(row.get("room_id"))
+            image_url = str(row.get("image_url", "") or "")
+            if room_id and image_url:
+                img = RoomImage(room_id=room_id, image_url=image_url)
+                _room_images.append(img)
+                image_map.setdefault(room_id, []).append(img.image_url)
 
     _room_image_map = image_map
 
@@ -328,14 +315,9 @@ def get_room(room_id: int):
     room = next((r for r in _rooms if r.room_id == room_id), None)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-
     images = _room_image_map.get(room_id, [])
     return RoomWithImages(**room.dict(), images=images)
 
 
-# 모듈 import 시점에 1회 로딩(배포에서 [] 뜨는 거 방지)
-try:
-    load_data()
-except Exception:
-    # 데이터 로딩 실패해도 서버는 뜨게 둠
-    pass
+# 서버 시작 시 로딩
+load_data()
