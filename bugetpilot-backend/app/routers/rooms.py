@@ -333,3 +333,5 @@ def get_room(room_id: int):
 
     images = _room_image_map.get(room_id, [])
     return RoomWithImages(**room.dict(), images=images)
+
+load_data()
