@@ -183,6 +183,7 @@ def load_data():
     try:
         # --- fallback: dummy rooms ---
         df_rooms = pd.read_csv(ROOMS_CSV)
+        df_rooms.columns = df_rooms.columns.str.strip()
     except Exception:
         _rooms = []
         _room_image_map = {}
@@ -193,15 +194,64 @@ def load_data():
         df_rooms["room_id"] = df_rooms.index + 1
 
     _rooms = []
+    # room_id 없으면 index 기반으로 생성
+# room_id 없으면 index 기반으로 생성
+    df_rooms.columns = df_rooms.columns.str.strip()
+
+    if "room_id" not in df_rooms.columns:
+        df_rooms["room_id"] = df_rooms.index + 1
+
+    def _to_int(v, default=0):
+        try:
+            if pd.isna(v):
+                return default
+            return int(float(v))
+        except Exception:
+            return default
+
+    def _to_float(v, default=0.0):
+        try:
+            if pd.isna(v):
+                return default
+            return float(v)
+        except Exception:
+            return default
+
+    _rooms = []
     for _, row in df_rooms.iterrows():
         room_data = {
-            "bedroom_count": int(row.bedroom_count),
-            "bed_count": int(row.bed_count),
-            "bathroom_count": int(row.bathroom_count),
-            "headcount_capacity": int(row.headcount_capacity),
-            "title": row.title,
-            "address": row.address,
+            "bedroom_count": _to_int(row.get("bedroom_count", 0)),
+            "bed_count": _to_int(row.get("bed_count", 0)),
+            "bathroom_count": _to_int(row.get("bathroom_count", 0)),
+            "headcount_capacity": _to_int(row.get("headcount_capacity", 0)),
+            "title": str(row.get("title", "") or ""),
+            "address": str(row.get("address", "") or ""),
         }
+
+        korean_description = generate_korean_description(room_data)
+
+        _rooms.append(
+            Room(
+                room_id=_to_int(row.get("room_id")),
+                host_id=_to_int(row.get("host_id", 1), 1),
+                title=room_data["title"],
+                description=korean_description,
+                address=room_data["address"],
+                lat=_to_float(row.get("lat", 0.0)),
+                lng=_to_float(row.get("lng", 0.0)),
+                bathroom_count=room_data["bathroom_count"],
+                bed_count=room_data["bed_count"],
+                bedroom_count=room_data["bedroom_count"],
+                headcount_capacity=room_data["headcount_capacity"],
+                cleaning_fee=_to_int(row.get("cleaning_fee", 0)),
+                daily_price=_to_int(row.get("daily_price", 0)),
+                lodging_tax_ratio=_to_float(row.get("lodging_tax_ratio", 0.0)),
+                sale_ratio=_to_float(row.get("sale_ratio", 0.0)),
+                service_fee=_to_int(row.get("service_fee", 0)),
+                rating_star_score=_to_float(row.get("rating_star_score", 0.0)),
+                review_count=_to_int(row.get("review_count", 0)),
+            )
+        )
         
         # 한국어 설명 생성
         korean_description = generate_korean_description(room_data)
@@ -242,8 +292,7 @@ def load_data():
 
     _room_image_map = image_map
 
-# 모듈 import 될 때 한 번 로딩
-load_data()
+
 
 @router.get("", response_model=List[RoomWithImages])
 @router.get("/", response_model=List[RoomWithImages])
