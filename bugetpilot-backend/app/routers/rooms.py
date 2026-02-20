@@ -1,4 +1,5 @@
 # app/routers/rooms.py
+import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -12,10 +13,34 @@ router = APIRouter(prefix="/rooms", tags=["rooms"])
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 ROOMS_CSV = DATA_DIR / "dummy_rooms.csv"
 IMAGES_CSV = DATA_DIR / "dummy_room_images.csv"
+# 문화체육관광부 전국 호텔 현황 CSV (프로젝트 루트 또는 app/data)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+CULTURE_CSV = PROJECT_ROOT / "문화체육관광부_전국호텔현황_20230405.csv"
+CULTURE_CSV_IN_DATA = DATA_DIR / "문화체육관광부_전국호텔현황_20230405.csv"
 
 _rooms: List[Room] = []
 _room_images: List[RoomImage] = []
 _room_image_map: Dict[int, List[str]] = {}
+
+# 등급별 기본 1박 요금 (CSV에 가격 없음)
+STAR_DEFAULT_PRICE = {1: 35_000, 2: 55_000, 3: 80_000, 4: 120_000, 5: 180_000}
+# 등급별 플레이스홀더 이미지
+STAR_IMAGES = {
+    1: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"],
+    2: ["https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800"],
+    3: ["https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800"],
+    4: ["https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800"],
+    5: ["https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800"],
+}
+
+
+def _star_from_grade(grade_str: str) -> int:
+    """'3성' -> 3"""
+    if pd.isna(grade_str) or not isinstance(grade_str, str):
+        return 3
+    m = re.search(r"(\d)성", str(grade_str).strip())
+    return int(m.group(1)) if m else 3
+
 
 def generate_korean_description(room_data) -> str:
     """숙소 정보를 바탕으로 한국어 설명 생성"""
@@ -81,11 +106,87 @@ def generate_korean_description(room_data) -> str:
     
     return base_desc
 
+
+def _load_culture_hotels() -> bool:
+    """문화체육관광부 전국 호텔 현황 CSV 로드. 성공 시 True."""
+    global _rooms, _room_images, _room_image_map
+    csv_path = CULTURE_CSV if CULTURE_CSV.exists() else CULTURE_CSV_IN_DATA
+    if not csv_path.exists():
+        return False
+    try:
+        df = pd.read_csv(csv_path, encoding="utf-8")
+    except UnicodeDecodeError:
+        try:
+            df = pd.read_csv(csv_path, encoding="cp949")
+        except Exception:
+            return False
+    except Exception:
+        return False
+    # 컬럼: 등급 인정처, 호텔업 구분, 결정 등급, 등급 결정일, 지역, 호텔명, 객실수, 주소, 전화번호, 홈페이지
+    if "호텔명" not in df.columns or "지역" not in df.columns:
+        return False
+    _rooms = []
+    _room_image_map = {}
+    for idx, row in df.iterrows():
+        star = _star_from_grade(str(row.get("결정 등급", "3성")))
+        star = max(1, min(5, star))
+        title = str(row.get("호텔명", "")).strip()
+        address = str(row.get("주소", "")).strip()
+        region = str(row.get("지역", "")).strip()
+        if not title:
+            continue
+        room_count = 0
+        try:
+            room_count = int(row.get("객실수", 0) or 0)
+        except (ValueError, TypeError):
+            pass
+        daily_price = STAR_DEFAULT_PRICE.get(star, 80000)
+        # 객실수로 약간 변동 (같은 등급 내 다양성)
+        if room_count > 0:
+            daily_price = int(daily_price * (0.9 + (idx % 20) / 200.0))
+        description = f"{region} {star}성급 호텔입니다. 객실 {room_count}개 보유."
+        room_id = idx + 1
+        _rooms.append(
+            Room(
+                room_id=room_id,
+                host_id=1,
+                title=title,
+                description=description,
+                address=address or region,
+                lat=0.0,
+                lng=0.0,
+                bathroom_count=1,
+                bed_count=min(2, max(1, room_count // 50)) if room_count else 1,
+                bedroom_count=1,
+                headcount_capacity=min(4, max(2, room_count // 30)) if room_count else 2,
+                cleaning_fee=0,
+                daily_price=daily_price,
+                lodging_tax_ratio=0.0,
+                sale_ratio=0.0,
+                service_fee=0,
+                rating_star_score=float(star),
+                review_count=room_count * 2 if room_count else 10,
+            )
+        )
+        _room_image_map[room_id] = STAR_IMAGES.get(star, STAR_IMAGES[3])[:]
+    _room_images = []
+    return len(_rooms) > 0
+
+
 def load_data():
     global _rooms, _room_images, _room_image_map
-
-    # --- rooms ---
-    df_rooms = pd.read_csv(ROOMS_CSV)
+    try:
+        if _load_culture_hotels():
+            return
+    except Exception:
+        pass
+    try:
+        # --- fallback: dummy rooms ---
+        df_rooms = pd.read_csv(ROOMS_CSV)
+    except Exception:
+        _rooms = []
+        _room_image_map = {}
+        return
 
     # room_id 없으면 index 기반으로 생성
     if "room_id" not in df_rooms.columns:
@@ -144,6 +245,7 @@ def load_data():
 # 모듈 import 될 때 한 번 로딩
 load_data()
 
+@router.get("", response_model=List[RoomWithImages])
 @router.get("/", response_model=List[RoomWithImages])
 def list_rooms(
     city_keyword: Optional[str] = Query(None, description="주소/도시 검색 키워드"),

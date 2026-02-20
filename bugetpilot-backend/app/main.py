@@ -1,7 +1,7 @@
 # backend/app/main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import rooms, schedule
+from typing import Optional
 
 # 1) 앱 생성
 app = FastAPI(title="Backend API")
@@ -14,6 +14,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from app.routers import rooms, schedule
+
+# GET /rooms (끝에 슬래시 없음) 명시 등록 — 일부 환경에서 404 방지
+@app.get("/rooms")
+def get_rooms(
+    city_keyword: Optional[str] = Query(None),
+    max_price: Optional[int] = Query(None),
+    min_rating: Optional[float] = Query(None),
+    include_images: Optional[int] = Query(1, ge=0, le=10),
+):
+    return rooms.list_rooms(city_keyword, max_price, min_rating, include_images)
 
 app.include_router(rooms.router)
 app.include_router(schedule.router)
